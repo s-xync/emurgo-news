@@ -28,3 +28,17 @@ exports.findArticleByTitle = async (req, res) => {
   }
 };
 
+// Find a news article by author
+exports.findArticleByAuthor = async (req, res) => {
+  try {
+    const { author } = req.params;
+    const response = await axios.get(
+      `https://gnews.io/api/v4/search?apikey=${process.env.GNEWS_API_KEY}&q=${author}`
+    );
+    const articles = response.data.articles;
+    res.json(articles);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to find articles by author" });
+  }
+};
+
