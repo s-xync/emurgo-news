@@ -42,3 +42,18 @@ exports.findArticleByAuthor = async (req, res) => {
   }
 };
 
+// Search articles by keywords
+exports.searchArticles = async (req, res) => {
+  try {
+    const { keywords } = req.params;
+    // expecting keywords to be a comma seperated string of keywords
+    const keywordString = keywords.split(",").join(" OR ");
+    const response = await axios.get(
+      `https://gnews.io/api/v4/search?apikey=${process.env.GNEWS_API_KEY}&q=${keywordString}`
+    );
+    const articles = response.data.articles;
+    res.json(articles);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to search articles" });
+  }
+};

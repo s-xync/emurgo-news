@@ -11,4 +11,7 @@ router.get("/articles/title/:title", controller.findArticleByTitle);
 // Find a news article by author
 router.get("/articles/author/:author", controller.findArticleByAuthor);
 
+// Search articles by keywords
+router.get("/articles/search/:keywords", controller.searchArticles);
+
 module.exports = router;
