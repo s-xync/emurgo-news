@@ -1,14 +1,42 @@
 const axios = require("axios");
+const redis = require("redis");
+
+let redisClient;
+
+(async () => {
+  redisClient = redis.createClient();
+  redisClient.on("error", (error) => console.error(`Error : ${error}`));
+  await redisClient.connect();
+})();
 
 // Fetch N news articles
 exports.fetchArticles = async (req, res) => {
   try {
     const { N } = req.params; // Number of articles to fetch
-    const response = await axios.get(
-      `https://gnews.io/api/v4/top-headlines?apikey=${process.env.GNEWS_API_KEY}&max=${N}&lang=en`
-    );
-    const articles = response.data.articles;
-    res.json(articles);
+
+    // Check if articles are cached in Redis
+    const cachedArticles = await redisClient.get(`articles:${N}`);
+
+    if (cachedArticles) {
+      // Articles found in cache, return the cached data
+      res.json(JSON.parse(cachedArticles));
+    } else {
+      // Articles not found in cache, fetch from GNews API
+      const response = await axios.get(
+        `https://gnews.io/api/v4/top-headlines?apikey=${process.env.GNEWS_API_KEY}&max=${N}&lang=en`
+      );
+      const articles = response.data.articles;
+
+      // Cache the fetched articles in Redis
+      await redisClient.set(
+        `articles:${N}`,
+        JSON.stringify(articles),
+        "EX",
+        3600
+      ); // Cache for 1 hour (3600 seconds)
+
+      res.json(articles);
+    }
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch articles" });
   }
