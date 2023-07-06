@@ -13,3 +13,18 @@ exports.fetchArticles = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch articles" });
   }
 };
+
+// Find a news article by title
+exports.findArticleByTitle = async (req, res) => {
+  try {
+    const { title } = req.params;
+    const response = await axios.get(
+      `https://gnews.io/api/v4/search?apikey=${process.env.GNEWS_API_KEY}&q=${title}`
+    );
+    const articles = response.data.articles;
+    res.json(articles);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to find articles by title" });
+  }
+};
+
